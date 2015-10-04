@@ -45,7 +45,25 @@ class SJF_GF_Source {
 	
 		add_filter( 'the_title', array( $this, 'filter_title' ), 10, 2 );
 
+		add_filter( 'post_row_actions', array( $this, 'post_row_actions' ), 10, 2 );
+
 		register_activation_hook( __FILE__, array( $this, '	function rewrite_flush' ) );
+
+	}
+   
+	public function post_row_actions( $actions, WP_Post $post ) {
+	    
+	    if ( $post->post_type != 'source' ) { return $actions; }
+
+	    $post_id = get_the_ID();
+
+	    $import_text = esc_html__( 'Import', 'sjf-gf' );
+
+	    $import_href = SJF_GF_Meta::get_admin_url( array( 'source_id' => $post_id ) );
+
+	    $actions[ __CLASS__ ] = "<a href='$import_href'>$import_text</a>";
+
+	    return $actions;
 
 	}
 

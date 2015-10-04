@@ -23,6 +23,8 @@ class SJF_GF_Settings {
 		// Add our menu item.
 		add_action( 'admin_menu', array( $this, 'admin_menu_tab' ) );
 
+		#add_action( 'my_new_event', array( $this, 'do_this_in_a_second' ), 10, 1 );
+
 	}
 
 	/**
@@ -111,6 +113,8 @@ class SJF_GF_Settings {
 
 	function get_imports() { 
 
+		$results = array();
+
 		$header  = 'imports header';
 		
 		$import_all_text = esc_html__( 'Import from all sources', 'sjf-gf' );
@@ -124,21 +128,49 @@ class SJF_GF_Settings {
 		} elseif( isset( $_GET['source_ids'] ) ) {
 
 			if( $_GET['source_ids'] == 'all' ) {
+				
 				$source_ids = $this -> get_source_ids();
-			}
+
+			} 
+
 		}
 
 		if( isset( $source_ids ) ) {
 
+			#wp_schedule_single_event( time() + 1, 'my_new_event', array( $source_ids  ) );
+			
 			foreach( $source_ids as $source_id ) {
-
+			
 				$import = new SJF_GF_Import( $source_id );
 
-				$import -> get();
+				$results[]= $import -> get();
+		
+			}
+
+		}
+
+		$results_str = '';
+
+		foreach( $results as $source_result ) {
+
+			foreach( $source_result as $post_result ) {
+					
+				$results_str .= $post_result;
 
 			}
 
 		}
+
+		$previous_cron = get_option( SJF_GF . '-latest_cron' );
+		if( ! empty( $previous_cron  ) ) {
+
+			$content .= "<div><h3>previous results</h3>$previous_cron</div>";
+
+		}
+
+		update_option( SJF_GF . '-latest_cron', $results_str );
+
+		$content .= "<div><h3>results</h3>$results_str</div>";
 
 		$out = $this -> get_section( $header, $content );
 
@@ -146,11 +178,25 @@ class SJF_GF_Settings {
 
 	}
 
+	/*function do_this_in_a_second( $source_ids ) {
+
+		foreach( $source_ids as $source_id ) {
+			
+			$import = new SJF_GF_Import( $source_id );
+
+			$import -> get();
+	
+		}
+
+	}*/
+
 	function get_source_ids() {
 
 		$args = array(
 			'posts_per_page' => -1,
 			'post_type' => 'source',
+			'post_status' => 'publish',
+
 		);
 
 		$the_query = new WP_Query( $args );
