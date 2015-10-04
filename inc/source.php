@@ -51,6 +51,8 @@ class SJF_GF_Source {
 
 	public function filter_title( $title, $id ) {
 
+		if( $this -> get_current_post_type() != 'source' ) { return $title; }
+
 		$title = $this -> get_title( $id );
 
 		return $title;
@@ -90,6 +92,7 @@ class SJF_GF_Source {
 			'show_ui'            => TRUE,
 			'show_in_menu'       => TRUE,
 			'query_var'          => TRUE,
+			'menu_icon'           => 'dashicons-phone',
 			'rewrite'            => array( 'slug' => 'source' ),
 			'capability_type'    => 'post',
 			'has_archive'        => TRUE,
@@ -207,7 +210,7 @@ class SJF_GF_Source {
 
 		$get_url = $this -> get_url();
 
-		if( ! empty( $get_url ) ) {
+		//if( ! empty( $get_url ) ) {
 
 			$title = array(
 				'atts' => array(
@@ -238,7 +241,7 @@ class SJF_GF_Source {
 			$out['format'] = $format;
 
 
-		}
+		//}
 
 		return $out;
 
@@ -313,6 +316,10 @@ class SJF_GF_Source {
 			// Update the meta field.
 			update_post_meta( $post_id, $id, $data );
 
+			if( $field_key == 'url' ) {
+				$this -> remote = $this -> retrieve_remote();
+			}
+
 		}
 
 	
@@ -338,10 +345,9 @@ class SJF_GF_Source {
 		foreach( $fields as $field_key => $field ) {
 
 			$value = $this -> get_meta( $field_key );
-
-			$label_text = esc_html( $field['label'] );
-			$label = "<label for='$field_key'>$label_text</label>";
 		
+			$label_text = esc_html( $field['label'] );
+
 			$atts_str = '';
 
 			foreach( $field['atts'] as $att_k => $att_v ) {
@@ -354,7 +360,7 @@ class SJF_GF_Source {
 
 			$import_text = esc_html__( 'Import Posts', 'sjf-gf' );
 
-			$import_href = get_admin_url( null, "?page=sjf_gf&source_id=$post_id" );
+			$import_href = SJF_GF_Meta::get_admin_url( array( 'source_id' => $post_id ) );
 
 			$out .= "
 				<div>
@@ -417,7 +423,7 @@ class SJF_GF_Source {
 			
 			$content_type = 'application/rss+xml; charset=UTF-8';
 
-		}
+		} 
 
 		if( $key == 'format' ) {
 			return $content_type;
@@ -483,6 +489,29 @@ class SJF_GF_Source {
 
 		return $posts;
 
+	}
+
+	function get_current_post_type() {
+	  global $post, $typenow, $current_screen;
+		
+	  //we have a post so we can just get the post type from that
+	  if ( $post && $post->post_type )
+	    return $post->post_type;
+	    
+	  //check the global $typenow - set in admin.php
+	  elseif( $typenow )
+	    return $typenow;
+	    
+	  //check the global $current_screen object - set in sceen.php
+	  elseif( $current_screen && $current_screen->post_type )
+	    return $current_screen->post_type;
+	  
+	  //lastly check the post_type querystring
+	  elseif( isset( $_REQUEST['post_type'] ) )
+	    return sanitize_key( $_REQUEST['post_type'] );
+		
+	  //we do not know the post type!
+	  return null;
 	}
 
 }

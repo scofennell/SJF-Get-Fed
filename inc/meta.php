@@ -22,4 +22,17 @@ class SJF_GF_Meta {
 		return 'edit_posts';
 	}
 
+	public static function get_admin_url( $args ) {
+
+		$args_str = '?page=sjf_gf&';
+		foreach( $args as $k => $v ) {
+			$args_str .= "$k=$v";
+		}
+
+		$out = get_admin_url( null, $args_str );
+
+		return $out;
+
+	}
+
 }
