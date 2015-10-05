@@ -32,13 +32,29 @@ class SJF_GF_Sources {
 		$sources = $this -> get();
 
 		$out = array();
-
 		
 		foreach( $sources as $source ) {
 
 			$url = get_post_meta( $source -> ID, '_my_meta_value_key', TRUE );
 
 			$out[]= $url;
+
+		}
+
+		return $out;
+
+	}
+
+
+	function get_ids() {
+
+		$sources = $this -> get();
+
+		$out = array();
+		
+		foreach( $sources as $source ) {
+
+			$out[]= $source -> ID;
 
 		}
 

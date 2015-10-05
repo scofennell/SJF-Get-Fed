@@ -13,7 +13,9 @@ function sjf_gf_imports_init() {
 }
 add_action( 'init', 'sjf_gf_imports_init' );
 
-class SJF_GF_Imports {
+class SJF_GF_Imports extends SJF_GF_Admin  {
+
+	public $source_ids = '';
 
 	/**
 	 * Adds actions for our class methods.
@@ -23,32 +25,47 @@ class SJF_GF_Imports {
 		// Add our menu item.
 		add_action( 'admin_menu', array( $this, 'admin_menu_tab' ) );
 
-		#add_action( 'my_new_event', array( $this, 'do_this_in_a_second' ), 10, 1 );
+		if( isset( $_GET['source_id'] ) ) {
+			$this -> source_ids = array( absint( $_GET['source_id'] ) );
+		}
 
+		if( isset( $_GET['source_ids'] ) ) {
+
+			$source_ids = sanitize_text_field( $_GET['source_ids'] );
+
+			if( $source_ids == 'all' ) {
+
+				$sources = new SJF_GF_Sources;
+				$source_ids = $sources -> get_ids();
+
+			} else {
+
+				$source_ids = explode( ',', $source_ids );
+	
+			}
+
+			$this -> source_ids = $source_ids;
+
+		}
+
+	}
+
+	function get_source_ids() {
+		return $this -> source_ids;
 	}
 
 	/**
 	 * Add a menu item for our plugin.
 	 */
 	function admin_menu_tab() {
-		
-		// Add a primary menu item.
-		add_menu_page(
-			SJF_GF_Meta::get_plugin_title(),
-			SJF_GF_Meta::get_plugin_title(),
-			SJF_GF_Meta::get_capability(),
-			SJF_GF,
-			array( $this, 'the_admin_page' ),
-			SJF_GF_Meta::get_dashicon_class()
-		);
 
 		add_submenu_page(
-			'settings.php',
-			SJF_GF_Meta::get_plugin_title(),
-			SJF_GF_Meta::get_plugin_title(),
+			get_parent_class(),
+			__CLASS__,
+			esc_attr__( 'Import Posts', 'sjf-gf' ),
 			'manage_options',
-			SJF_GF,
-			array( $this, 'the_admin_page' )
+			__CLASS__,
+			array( $this, 'the_page' )
 		);
 
 	}
@@ -56,121 +73,41 @@ class SJF_GF_Imports {
 	/**
 	 * A page for used for help / faq  / clearing transients, etc.
 	 */
-	function the_admin_page() {
+	function the_page() {
 	
 		// Check capability.
-		if( ! current_user_can( SJF_GF_Meta::get_capability() ) ) { return false; }
+		$this -> accost();
 
 		// Grab our plugin JS & CSS files.
-		wp_enqueue_script( SJF_GF );
-		wp_enqueue_style( SJF_GF );
+		$this -> enqueue();
 
-		$out = '';
+		$title = __CLASS__;
 
-		$title = SJF_GF_Meta::get_plugin_title();
+		$content = $this -> get_imports();
 
-		$out .= $this -> get_imports();
-
-		$out = "
-			<div class='wrap'>
-				<h2>$title</h2>
-				$out
-			</div>
-		";
+		$out = $this -> wrap( __CLASS__, $content );
 
 		echo $out;
 
 	}
 
-	/**
-	 * Given a header and a body, output a section in the manner expected by our admin page.
-	 * 
-	 * @param  string $header The section title.
-	 * @param  string $content The section content.
-	 * @return string A block of HTML formatted in the manner expected by our admin page.
-	 */
-	function get_section( $header, $content = '' ) {
+	function get_import_all_link() {
 
-		$out = '';
+		$import_all_text = esc_html__( 'Import from all sources', 'sjf-gf' );
 
-		$class = SJF_GF_Formatting::get_css_class( __CLASS__, __FUNCTION__ );
+		$import_all_href = SJF_GF_Meta::get_admin_url( array( 'page' => __CLASS__, 'source_ids' => 'all' ) );
 
-		$header = wp_kses_post( $header );
-		$header = "<h3 class='$class-header'>$header</h3>";
-		
-		if( ! empty( $content ) ) { 
-			$content = "<div class='$class-content'>$content</div>";
-		}
-
-		return "
-			<div class='$class'>
-				$header
-				$content
-			</div>
-		";
+		return "<a href='$import_all_href'>$import_all_text</a>";
 
 	}
 
 	function get_imports() { 
 
-		$results = array();
-
 		$header  = 'imports header';
 		
-		$import_all_text = esc_html__( 'Import from all sources', 'sjf-gf' );
+		$content = $this -> get_import_all_link();
 
-		$import_all_href = SJF_GF_Meta::get_admin_url( array( 'source_ids' => 'all' ) );
-
-		$content = "<a href='$import_all_href'>$import_all_text</a>";
-
-		if( isset( $_GET['source_id'] ) ) {
-			$source_ids[]=$_GET['source_id'];
-		} elseif( isset( $_GET['source_ids'] ) ) {
-
-			if( $_GET['source_ids'] == 'all' ) {
-				
-				$source_ids = $this -> get_source_ids();
-
-			} 
-
-		}
-
-		if( isset( $source_ids ) ) {
-
-			#wp_schedule_single_event( time() + 1, 'my_new_event', array( $source_ids  ) );
-			
-			foreach( $source_ids as $source_id ) {
-			
-				$import = new SJF_GF_Import( $source_id );
-
-				$results[]= $import -> get();
-		
-			}
-
-		}
-
-		$results_str = '';
-
-		foreach( $results as $source_result ) {
-
-			foreach( $source_result as $post_result ) {
-					
-				$results_str .= $post_result;
-
-			}
-
-		}
-
-		$previous_cron = get_option( SJF_GF . '-latest_cron' );
-		if( ! empty( $previous_cron  ) ) {
-
-			$content .= "<div><h3>previous results</h3>$previous_cron</div>";
-
-		}
-
-		update_option( SJF_GF . '-latest_cron', $results_str );
-
-		$content .= "<div><h3>results</h3>$results_str</div>";
+		$content .= $this -> run_imports();
 
 		$out = $this -> get_section( $header, $content );
 
@@ -178,40 +115,27 @@ class SJF_GF_Imports {
 
 	}
 
-	/*function do_this_in_a_second( $source_ids ) {
+	function run_imports() {
 
+		$source_ids = $this -> get_source_ids();
+
+		if( ! is_array( $source_ids ) ) { return FALSE; }
+
+		$results = array();
+	
 		foreach( $source_ids as $source_id ) {
 			
 			$import = new SJF_GF_Import( $source_id );
 
-			$import -> get();
-	
-		}
-
-	}*/
-
-	function get_source_ids() {
-
-		$args = array(
-			'posts_per_page' => -1,
-			'post_type' => 'source',
-			'post_status' => 'publish',
-
-		);
-
-		$the_query = new WP_Query( $args );
-
-		if ( ! $the_query -> have_posts() ) { return FALSE; }
+			$results[ $source_id ]= $import -> get();
 		
-		while ( $the_query -> have_posts() ) {
-			
-			$the_query -> the_post();
-
-			$out[]= get_the_ID();
-
 		}
 
-		return $out;
+		$result = new SJF_GF_Result( $results );
+		$result -> update();
+		$result_str = $result -> get_report();
+
+		return "<div><h3>results</h3>$result_str</div>";
 
 	}
 

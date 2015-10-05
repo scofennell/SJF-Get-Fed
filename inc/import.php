@@ -42,15 +42,15 @@ class SJF_GF_Import {
 
 	function maybe_import_post( $guid, $post_arr ) {
 
-		$results = '';
+		$results = array();
 
 		if( $this -> post_exists( $guid ) ) {
 
-			$results .= "<p>$guid already exists</p>";
+			$results []= "<p>$guid already exists</p>";
 
 		} else {
 
-			$results .= "<p>$guid does not alread exist</p>";
+			$results []= "<p>$guid does not alread exist</p>";
 
 			$post_title = $post_arr['title'];
 			$post_content = $post_arr['content'];
@@ -59,19 +59,19 @@ class SJF_GF_Import {
 			
 			if( ! $author_exists ) {
 
-				$results .= "<p>$guid author does not already exist</p>";
+				$results []= "<p>$guid author does not already exist</p>";
 
 				$author_id = $this -> import_author( $post_arr['author'] );
 
 				if( ! empty( $author_id ) ) {
 
-					$results .= "<p>$guid author added as author_id $author_id</p>";
+					$results []= "<p>$guid author added as author_id $author_id</p>";
 
 				}
 
 			} else {
 
-				$results .= "<p>$guid author already exists as id $author_exists</p>";
+				$results []= "<p>$guid author already exists as id $author_exists</p>";
 
 				$author_id = $author_exists;
 
@@ -101,13 +101,13 @@ class SJF_GF_Import {
 
 			if( ! empty( $new_post_id ) ) {
 
-				$results .= "<p>$guid was inserted as post ID $new_post_id</p>";
+				$results []= "<p>$guid was inserted as post ID $new_post_id</p>";
 
 				add_post_meta( $new_post_id,  SJF_GF . "-guid", $guid, TRUE );
 
 			} else {
 
-				$results .= "<p>$guid could not be inserted</p>";
+				$results []= "<p>$guid could not be inserted</p>";
 
 			}
 

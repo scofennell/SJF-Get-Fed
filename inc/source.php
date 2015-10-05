@@ -59,7 +59,7 @@ class SJF_GF_Source {
 
 	    $import_text = esc_html__( 'Import', 'sjf-gf' );
 
-	    $import_href = SJF_GF_Meta::get_admin_url( array( 'source_id' => $post_id ) );
+	    $import_href = $this -> get_import_href();
 
 	    $actions[ __CLASS__ ] = "<a href='$import_href'>$import_text</a>";
 
@@ -378,7 +378,7 @@ class SJF_GF_Source {
 
 			$import_text = esc_html__( 'Import Posts', 'sjf-gf' );
 
-			$import_href = SJF_GF_Meta::get_admin_url( array( 'source_id' => $post_id ) );
+			$import_href = $this -> get_import_href();
 
 			$out .= "
 				<div>
@@ -408,6 +408,10 @@ class SJF_GF_Source {
 
 		echo $out;
 
+	}
+
+	function get_import_href() {
+		return SJF_GF_Meta::get_admin_url( array( 'page' => 'SJF_GF_Imports', 'source_id' => $this -> get_post_id() ) );
 	}
 
 	function rewrite_flush() {

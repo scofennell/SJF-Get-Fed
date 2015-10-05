@@ -35,10 +35,12 @@ define( 'SJF_GF_VERSION', '0.1' );
 define( 'SJF_GF', 'sjf_gf' );
 define( 'SJF_GF_FILE', __FILE__ );
 define( 'SJF_GF_PATH', trailingslashit( plugin_dir_path( SJF_GF_FILE ) ) );
+define( 'SJF_GF_ADMIN_PATH', SJF_GF_PATH . 'admin/' );
 define( 'SJF_GF_INC_PATH', SJF_GF_PATH . 'inc/' );
 
 // A constant to define the urls to our plugin folders.
 define( 'SJF_GF_URL', trailingslashit( plugin_dir_url( SJF_GF_FILE ) ) );
+define( 'SJF_GF_ADMIN_URL', SJF_GF_URL . 'admin/' );
 define( 'SJF_GF_INC_URL', SJF_GF_URL . 'inc/' );
 
 /**
@@ -53,6 +55,8 @@ require_once( SJF_GF_INC_PATH . 'cron.php' );
 
 require_once( SJF_GF_INC_PATH . 'import.php' );
 
+require_once( SJF_GF_INC_PATH . 'result.php' );
+
 // Information about our plugin.
 require_once( SJF_GF_INC_PATH . 'meta.php' );
 
@@ -62,4 +66,6 @@ require_once( SJF_GF_INC_PATH . 'source.php' );
 require_once( SJF_GF_INC_PATH . 'sources.php' );
 
 // Register settings page.
-require_once( SJF_GF_INC_PATH . 'settings.php' );
+require_once( SJF_GF_ADMIN_PATH . 'admin.php' );
+require_once( SJF_GF_ADMIN_PATH . 'imports.php' );
+require_once( SJF_GF_ADMIN_PATH . 'results.php' );

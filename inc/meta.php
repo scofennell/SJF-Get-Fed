@@ -24,9 +24,16 @@ class SJF_GF_Meta {
 
 	public static function get_admin_url( $args ) {
 
-		$args_str = '?page=sjf_gf&';
+		$args_str = 'admin.php?';
+		$i = 0;
+		$count = count( $args );
 		foreach( $args as $k => $v ) {
+			
+			$i++;
 			$args_str .= "$k=$v";
+
+			if( $i < $count ) { $args_str .= '&'; }
+
 		}
 
 		$out = get_admin_url( null, $args_str );
